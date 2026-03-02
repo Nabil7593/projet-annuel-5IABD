@@ -4,11 +4,11 @@ import Image from "next/image";
 
 export function Logo() {
   return (
-    <div className="relative h-8 max-w-[10.847rem]">
+    <div className="relative h-12 w-full max-w-[28rem] overflow-hidden">
       <Image
         src={logo}
         fill
-        className="dark:hidden"
+        className="object-cover object-center scale-[1.6] dark:hidden"
         alt="NextAdmin logo"
         role="presentation"
         quality={100}
@@ -17,7 +17,7 @@ export function Logo() {
       <Image
         src={darkLogo}
         fill
-        className="hidden dark:block"
+        className="hidden object-cover object-center scale-[1.6] dark:block"
         alt="NextAdmin logo"
         role="presentation"
         quality={100}

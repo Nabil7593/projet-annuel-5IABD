@@ -1,236 +1,166 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+type RevenueEntry = {
+  id: string;
+  card: number;
+  cash: number;
+  ticketResto: number;
+  uber: number;
+};
+
 const CalendarBox = () => {
+  const [card, setCard] = useState("");
+  const [cash, setCash] = useState("");
+  const [ticketResto, setTicketResto] = useState("");
+  const [uber, setUber] = useState("");
+  const [entries, setEntries] = useState<RevenueEntry[]>([]);
+
+  const total = useMemo(() => {
+    const nCard = Number(card) || 0;
+    const nCash = Number(cash) || 0;
+    const nTicket = Number(ticketResto) || 0;
+    const nUber = Number(uber) || 0;
+    return nCard + nCash + nTicket + nUber;
+  }, [card, cash, ticketResto, uber]);
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const newEntry: RevenueEntry = {
+      id: `${Date.now()}`,
+      card: Number(card) || 0,
+      cash: Number(cash) || 0,
+      ticketResto: Number(ticketResto) || 0,
+      uber: Number(uber) || 0,
+    };
+
+    setEntries((prev) => [newEntry, ...prev]);
+    setCard("");
+    setCash("");
+    setTicketResto("");
+    setUber("");
+  };
+
   return (
-    <>
-      <div className="w-full max-w-full rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card">
-        <table className="w-full">
+    <div className="w-full max-w-full rounded-[10px] bg-white p-6 shadow-1 dark:bg-gray-dark dark:shadow-card">
+      <h2 className="text-lg font-semibold text-dark dark:text-white">
+        CA réalisé
+      </h2>
+
+      <form className="mt-4" onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <label className="flex flex-col gap-2 text-sm font-medium text-dark dark:text-white">
+            Carte bleue
+            <input
+              className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm text-dark outline-none transition focus:border-primary dark:border-dark-3 dark:text-white"
+              inputMode="decimal"
+              min="0"
+              onChange={(event) => setCard(event.target.value)}
+              placeholder="0"
+              type="number"
+              value={card}
+            />
+          </label>
+
+          <label className="flex flex-col gap-2 text-sm font-medium text-dark dark:text-white">
+            Cash
+            <input
+              className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm text-dark outline-none transition focus:border-primary dark:border-dark-3 dark:text-white"
+              inputMode="decimal"
+              min="0"
+              onChange={(event) => setCash(event.target.value)}
+              placeholder="0"
+              type="number"
+              value={cash}
+            />
+          </label>
+
+          <label className="flex flex-col gap-2 text-sm font-medium text-dark dark:text-white">
+            Ticket resto
+            <input
+              className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm text-dark outline-none transition focus:border-primary dark:border-dark-3 dark:text-white"
+              inputMode="decimal"
+              min="0"
+              onChange={(event) => setTicketResto(event.target.value)}
+              placeholder="0"
+              type="number"
+              value={ticketResto}
+            />
+          </label>
+
+          <label className="flex flex-col gap-2 text-sm font-medium text-dark dark:text-white">
+            Uber
+            <input
+              className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm text-dark outline-none transition focus:border-primary dark:border-dark-3 dark:text-white"
+              inputMode="decimal"
+              min="0"
+              onChange={(event) => setUber(event.target.value)}
+              placeholder="0"
+              type="number"
+              value={uber}
+            />
+          </label>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <button
+            className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90"
+            type="submit"
+          >
+            Ajouter
+          </button>
+          <span className="text-sm text-dark dark:text-white">
+            Total saisi: <span className="font-semibold">{total}</span>
+          </span>
+        </div>
+      </form>
+
+      <div className="mt-6 overflow-x-auto">
+        <table className="w-full min-w-[600px] border-collapse text-left text-sm">
           <thead>
-            <tr className="grid grid-cols-7 rounded-t-[10px] bg-primary text-white">
-              <th className="flex h-15 items-center justify-center rounded-tl-[10px] p-1 text-body-xs font-medium sm:text-base xl:p-5">
-                <span className="hidden lg:block"> Sunday </span>
-                <span className="block lg:hidden"> Sun </span>
-              </th>
-              <th className="flex h-15 items-center justify-center p-1 text-body-xs font-medium sm:text-base xl:p-5">
-                <span className="hidden lg:block"> Monday </span>
-                <span className="block lg:hidden"> Mon </span>
-              </th>
-              <th className="flex h-15 items-center justify-center p-1 text-body-xs font-medium sm:text-base xl:p-5">
-                <span className="hidden lg:block"> Tuesday </span>
-                <span className="block lg:hidden"> Tue </span>
-              </th>
-              <th className="flex h-15 items-center justify-center p-1 text-body-xs font-medium sm:text-base xl:p-5">
-                <span className="hidden lg:block"> Wednesday </span>
-                <span className="block lg:hidden"> Wed </span>
-              </th>
-              <th className="flex h-15 items-center justify-center p-1 text-body-xs font-medium sm:text-base xl:p-5">
-                <span className="hidden lg:block"> Thursday </span>
-                <span className="block lg:hidden"> Thur </span>
-              </th>
-              <th className="flex h-15 items-center justify-center p-1 text-body-xs font-medium sm:text-base xl:p-5">
-                <span className="hidden lg:block"> Friday </span>
-                <span className="block lg:hidden"> Fri </span>
-              </th>
-              <th className="flex h-15 items-center justify-center rounded-tr-[10px] p-1 text-body-xs font-medium sm:text-base xl:p-5">
-                <span className="hidden lg:block"> Saturday </span>
-                <span className="block lg:hidden"> Sat </span>
-              </th>
+            <tr className="border-b border-stroke text-dark dark:border-dark-3 dark:text-white">
+              <th className="px-3 py-2 font-semibold">Carte bleue</th>
+              <th className="px-3 py-2 font-semibold">Cash</th>
+              <th className="px-3 py-2 font-semibold">Ticket resto</th>
+              <th className="px-3 py-2 font-semibold">Uber</th>
+              <th className="px-3 py-2 font-semibold">Total</th>
             </tr>
           </thead>
           <tbody>
-            {/* <!-- Line 1 --> */}
-            <tr className="grid grid-cols-7">
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">1</span>
-                <div className="group h-16 w-full flex-grow cursor-pointer py-1 md:h-30">
-                  <span className="group-hover:text-primary md:hidden">
-                    More
-                  </span>
-                  <div className="event invisible absolute left-2 z-99 mb-1 flex w-[200%] flex-col rounded-r-[5px] border-l-[3px] border-primary bg-gray-2 px-3 py-1 text-left opacity-0 group-hover:visible group-hover:opacity-100 dark:bg-dark-2 md:visible md:w-[190%] md:opacity-100">
-                    <span className="event-name font-medium text-dark dark:text-white">
-                      Redesign Website
-                    </span>
-                    <span className="time text-sm">1 Dec - 2 Dec</span>
-                  </div>
-                </div>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">2</span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">3</span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">4</span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">5</span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">6</span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">7</span>
-              </td>
-            </tr>
-            {/* <!-- Line 1 --> */}
-            {/* <!-- Line 2 --> */}
-            <tr className="grid grid-cols-7">
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">8</span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">9</span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  10
-                </span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  11
-                </span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  12
-                </span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  13
-                </span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  14
-                </span>
-              </td>
-            </tr>
-            {/* <!-- Line 2 --> */}
-            {/* <!-- Line 3 --> */}
-            <tr className="grid grid-cols-7">
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  15
-                </span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  16
-                </span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  17
-                </span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  18
-                </span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  19
-                </span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  20
-                </span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  21
-                </span>
-              </td>
-            </tr>
-            {/* <!-- Line 3 --> */}
-            {/* <!-- Line 4 --> */}
-            <tr className="grid grid-cols-7">
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  22
-                </span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  23
-                </span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  24
-                </span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  25
-                </span>
-                <div className="group h-16 w-full flex-grow cursor-pointer py-1 md:h-30">
-                  <span className="group-hover:text-primary md:hidden">
-                    More
-                  </span>
-                  <div className="event invisible absolute left-2 z-99 mb-1 flex w-[300%] flex-col rounded-r-[5px] border-l-[3px] border-primary bg-gray-2 px-3 py-1 text-left opacity-0 group-hover:visible group-hover:opacity-100 dark:bg-dark-2 md:visible md:w-[290%] md:opacity-100">
-                    <span className="event-name font-medium text-dark dark:text-white">
-                      App Design
-                    </span>
-                    <span className="time text-sm">25 Dec - 27 Dec</span>
-                  </div>
-                </div>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  26
-                </span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  27
-                </span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  28
-                </span>
-              </td>
-            </tr>
-            {/* <!-- Line 4 --> */}
-            {/* <!-- Line 5 --> */}
-            <tr className="grid grid-cols-7">
-              <td className="ease relative h-20 cursor-pointer rounded-bl-[10px] border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  29
-                </span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  30
-                </span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">
-                  31
-                </span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">1</span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">2</span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">3</span>
-              </td>
-              <td className="ease relative h-20 cursor-pointer rounded-br-[10px] border border-stroke p-2 transition duration-500 hover:bg-gray-2 dark:border-dark-3 dark:hover:bg-dark-2 md:h-25 md:p-6 xl:h-31">
-                <span className="font-medium text-dark dark:text-white">4</span>
-              </td>
-            </tr>
-            {/* <!-- Line 5 --> */}
+            {entries.length === 0 ? (
+              <tr>
+                <td
+                  className="px-3 py-6 text-center text-sm text-body-color dark:text-dark-6"
+                  colSpan={5}
+                >
+                  Aucune donnée pour le moment.
+                </td>
+              </tr>
+            ) : (
+              entries.map((entry) => (
+                <tr
+                  className="border-b border-stroke last:border-0 dark:border-dark-3"
+                  key={entry.id}
+                >
+                  <td className="px-3 py-2">{entry.card}</td>
+                  <td className="px-3 py-2">{entry.cash}</td>
+                  <td className="px-3 py-2">{entry.ticketResto}</td>
+                  <td className="px-3 py-2">{entry.uber}</td>
+                  <td className="px-3 py-2 font-semibold">
+                    {entry.card +
+                      entry.cash +
+                      entry.ticketResto +
+                      entry.uber}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
-    </>
+    </div>
   );
 };
 
