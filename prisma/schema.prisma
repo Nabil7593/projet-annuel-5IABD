@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model DailyRevenue {
+  id          String   @id @default(cuid())
+  date        DateTime @unique @db.Date
+  cash        Float    @default(0)
+  card        Float    @default(0)
+  ticketResto Float    @default(0) @map("ticket_resto")
+  uber        Float    @default(0)
+  total       Float    @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("daily_revenues")
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String?       @unique @map("invoice_number")
+  supplierName  String        @map("supplier_name")
+  date          DateTime      @db.Date
+  totalAmount   Float         @map("total_amount")
+  amountHT      Float?        @map("amount_ht")
+  amountTTC     Float?        @map("amount_ttc")
+  tva           Float?
+  pdfUrl        String?       @map("pdf_url")
+  extractedData Json?         @map("extracted_data")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  items         InvoiceItem[]
+
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  invoiceId   String  @map("invoice_id")
+  description String
+  quantity    Float?
+  unitPrice   Float?  @map("unit_price")
+  totalPrice  Float   @map("total_price")
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_items")
+}
+
+model Expense {
+  id          String          @id @default(cuid())
+  date        DateTime        @db.Date
+  category    ExpenseCategory
+  description String
+  amount      Float
+  isRecurring Boolean         @default(false) @map("is_recurring")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  @@map("expenses")
+}
+
+enum ExpenseCategory {
+  ELECTRICITY
+  SALARIES
+  URSSAF
+  SUBSCRIPTION
+  RENT
+  INSURANCE
+  MAINTENANCE
+  OTHER
+
+  @@map("expense_category")
+}

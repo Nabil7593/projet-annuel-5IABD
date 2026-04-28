@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(where:*)",
+      "Bash(npx prisma init)",
+      "Bash(npx prisma db push)",
+      "Bash(node --version)",
+      "Bash(\"/c/Program Files/nodejs/node\" \"/c/Program Files/nodejs/node_modules/npm/bin/npx-cli.js\" prisma db push)",
+      "Bash(\"/c/Program Files/nodejs/npm\" install @prisma/adapter-pg)",
+      "WebFetch(domain:www.prisma.io)",
+      "Bash(\"/c/Program Files/nodejs/node\" \"/c/Program Files/nodejs/node_modules/npm/bin/npx-cli.js\" prisma generate)",
+      "Bash(node --env-file=.env scripts/seed-revenue.mjs)"
+    ]
+  }
+}

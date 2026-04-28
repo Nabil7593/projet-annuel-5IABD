@@ -1,4 +1,13 @@
-# NextAdmin - Next.js Admin Dashboard Template and Components
+# Pour mettrer les vraie données :
+Tu mets ton nouveau CSV dans scripts/
+
+Tu changes juste cette ligne dans seed.js :
+
+// Change juste le nom du fichier ici
+const file = fs.readFileSync('scripts/TON_NOUVEAU_FICHIER.csv', 'utf-8')
+
+code pour relancer : node scripts/seed.js
+
 
 **NextAdmin** is a Free, open-source Next.js admin dashboard toolkit featuring 200+ UI components and templates that come with pre-built elements, components, pages, high-quality design, integrations, and much more to help you create powerful admin dashboards with ease.
 
