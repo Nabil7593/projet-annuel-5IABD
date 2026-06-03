@@ -60,7 +60,7 @@ export function RevenueEntryForm() {
     fetchHistory();
 
     return () => {
-      fp.forEach((instance) => instance.destroy());
+      (Array.isArray(fp) ? fp : [fp]).forEach((instance) => instance.destroy());
     };
   }, [fetchHistory]);
 

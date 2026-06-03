@@ -1,4 +1,5 @@
 import { RevenueOverview } from "@/components/Charts/revenue-overview";
+import { PredictionsOverview } from "@/components/Charts/predictions";
 import { UsedDevices } from "@/components/Charts/used-devices";
 import { WeeksProfit } from "@/components/Charts/weeks-profit";
 import { TopChannels } from "@/components/Tables/top-channels";
@@ -61,6 +62,14 @@ export default async function Home({ searchParams }: PropsType) {
 
         <Suspense fallback={null}>
           <ChatsCard />
+        </Suspense>
+
+        <Suspense
+          fallback={
+            <div className="col-span-12 h-[480px] animate-pulse rounded-[10px] bg-gray-2 dark:bg-dark-2" />
+          }
+        >
+          <PredictionsOverview className="col-span-12" />
         </Suspense>
       </div>
     </>

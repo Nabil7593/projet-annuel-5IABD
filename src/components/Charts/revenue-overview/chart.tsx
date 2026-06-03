@@ -73,7 +73,10 @@ export function RevenueOverviewChart({ data, timeFrame = "mensuel" }: PropsType)
       fontFamily: "inherit",
       events: {
         mounted: (chart: any) => {
-          HIDDEN_BY_DEFAULT.forEach((name) => chart.hideSeries(name));
+          if (!chart) return;
+          try {
+            HIDDEN_BY_DEFAULT.forEach((name) => chart.hideSeries(name));
+          } catch {}
         },
       },
     },
@@ -106,14 +109,14 @@ export function RevenueOverviewChart({ data, timeFrame = "mensuel" }: PropsType)
     },
     yaxis: {
       labels: {
-        formatter: (val: number) => `${val.toFixed(0)} €`,
+        formatter: (val: number) => val != null ? `${val.toFixed(0)} €` : "0 €",
         style: { fontSize: "11px" },
       },
     },
     tooltip: {
       shared: true,
       intersect: false,
-      y: { formatter: (val: number) => `${val.toFixed(2)} €` },
+      y: { formatter: (val: number) => val != null ? `${val.toFixed(2)} €` : "0.00 €" },
     },
     responsive: [
       { breakpoint: 1024, options: { chart: { height: chartHeight - 40 } } },
