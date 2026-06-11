@@ -42,6 +42,20 @@ export function Header() {
       <div className="flex flex-1 items-center justify-end gap-2 min-[375px]:gap-4">
         <Notification />
 
+        <Link
+          href="/agent"
+          title="Assistant IA"
+          className="relative flex h-12 w-12 items-center justify-center rounded-full border border-stroke bg-gray-2 text-dark-6 transition hover:bg-primary/10 hover:text-primary dark:border-stroke-dark dark:bg-dark-2 dark:text-dark-4 dark:hover:text-primary"
+        >
+          <Image
+            src="/images/icon/agent-chat.svg"
+            width={26}
+            height={26}
+            alt="Assistant IA"
+            className="opacity-60 transition group-hover:opacity-100 dark:invert"
+          />
+        </Link>
+
         <div className="shrink-0">
           <UserInfo />
         </div>

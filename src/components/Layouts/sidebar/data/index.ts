@@ -28,6 +28,12 @@ export const NAV_DATA = [
         icon: Icons.PieChart,
         items: [],
       },
+      {
+        title: "Assistant IA",
+        url: "/agent",
+        icon: Icons.Alphabet,
+        items: [],
+      },
     ],
   },
   {

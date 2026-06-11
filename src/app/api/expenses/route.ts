@@ -35,6 +35,20 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "id requis" }, { status: 400 });
+
+    await prisma.expense.delete({ where: { id } });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting expense:", error);
+    return NextResponse.json({ error: "Erreur lors de la suppression" }, { status: 500 });
+  }
+}
+
 export async function GET() {
   try {
     const expenses = await prisma.expense.findMany({

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 480" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Left speech bubble (behind) -->
+  <path d="M195 210 H75 Q32 210 32 253 V370 Q32 413 75 413 H115 L85 460 L185 413 H195 Q238 413 238 370 V253 Q238 210 195 210 Z"/>
+  <!-- 3 dots in speech bubble -->
+  <circle cx="100" cy="312" r="14" fill="currentColor" stroke="none"/>
+  <circle cx="145" cy="312" r="14" fill="currentColor" stroke="none"/>
+  <circle cx="190" cy="312" r="14" fill="currentColor" stroke="none"/>
+
+  <!-- Robot antenna -->
+  <circle cx="370" cy="32" r="24"/>
+  <line x1="370" y1="56" x2="370" y2="100"/>
+
+  <!-- Robot head / body -->
+  <rect x="210" y="100" width="270" height="210" rx="36"/>
+
+  <!-- Robot visor (pill shape) -->
+  <rect x="248" y="158" width="194" height="90" rx="45"/>
+
+  <!-- Robot eyes -->
+  <circle cx="305" cy="203" r="20" fill="currentColor" stroke="none"/>
+  <circle cx="385" cy="203" r="20" fill="currentColor" stroke="none"/>
+
+  <!-- Robot speech bubble tail -->
+  <path d="M268 310 L235 370 L335 310" fill="none"/>
+</svg>

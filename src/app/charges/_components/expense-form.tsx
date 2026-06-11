@@ -2,6 +2,7 @@
 
 import { ShowcaseSection } from "@/components/Layouts/showcase-section";
 import { useCallback, useEffect, useState } from "react";
+import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LABEL } from "@/lib/expense-categories";
 
 type Expense = {
   id: string;
@@ -11,24 +12,6 @@ type Expense = {
   category: string;
 };
 
-const CATEGORIES = [
-  { value: "SALARIES", label: "Salaires" },
-  { value: "ELECTRICITY", label: "Électricité" },
-  { value: "URSSAF", label: "URSSAF" },
-  { value: "OTHER", label: "Autres" },
-] as const;
-
-const CATEGORY_LABELS: Record<string, string> = {
-  SALARIES: "Salaires",
-  ELECTRICITY: "Électricité",
-  URSSAF: "URSSAF",
-  OTHER: "Autres",
-  SUBSCRIPTION: "Abonnement",
-  RENT: "Loyer",
-  INSURANCE: "Assurance",
-  MAINTENANCE: "Maintenance",
-};
-
 export function ExpenseForm() {
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
@@ -36,6 +19,8 @@ export function ExpenseForm() {
   const [category, setCategory] = useState("");
   const [autresLabel, setAutresLabel] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
   const [history, setHistory] = useState<Expense[]>([]);
 
   // Date par défaut : aujourd'hui
@@ -74,7 +59,7 @@ export function ExpenseForm() {
     // Pour "Autres" : champ libre obligatoire. Pour les autres : libellé optionnel (catégorie suffit)
     const finalDescription = category === "OTHER"
       ? autresLabel.trim()
-      : description.trim() || CATEGORY_LABELS[category] || category;
+      : description.trim() || EXPENSE_CATEGORY_LABEL[category] || category;
 
     try {
       const response = await fetch("/api/expenses", {
@@ -88,16 +73,18 @@ export function ExpenseForm() {
         }),
       });
 
+      setError("");
       if (response.ok) {
-        alert("Charge enregistrée avec succès !");
+        setSuccess("Charge enregistrée avec succès !");
         resetForm();
         await fetchHistory();
+        setTimeout(() => setSuccess(""), 3000);
       } else {
         const json = await response.json();
-        alert(json.error ?? "Erreur lors de l'enregistrement");
+        setError(json.error ?? "Erreur lors de l'enregistrement");
       }
     } catch {
-      alert("Erreur lors de l'enregistrement");
+      setError("Erreur lors de l'enregistrement");
     } finally {
       setIsSubmitting(false);
     }
@@ -163,7 +150,7 @@ export function ExpenseForm() {
               <option value="" disabled>
                 Sélectionnez une catégorie
               </option>
-              {CATEGORIES.map((cat) => (
+              {EXPENSE_CATEGORIES.map((cat) => (
                 <option key={cat.value} value={cat.value}>
                   {cat.label}
                 </option>
@@ -215,6 +202,17 @@ export function ExpenseForm() {
         >
           {isSubmitting ? "Enregistrement..." : "Enregistrer la charge"}
         </button>
+
+        {success && (
+          <p className="mt-3 rounded-lg bg-green-50 px-4 py-2.5 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
+            {success}
+          </p>
+        )}
+        {error && (
+          <p className="mt-3 rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+            {error}
+          </p>
+        )}
       </form>
 
       {/* Historique */}
@@ -239,6 +237,9 @@ export function ExpenseForm() {
                   <th className="pb-3 text-right font-medium text-dark-6 dark:text-dark-4">
                     Montant
                   </th>
+                  <th className="pb-3 text-center font-medium text-dark-6 dark:text-dark-4">
+                    Action
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -252,7 +253,7 @@ export function ExpenseForm() {
                     </td>
                     <td className="py-3">
                       <span className="inline-flex rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary dark:bg-primary/20">
-                        {CATEGORY_LABELS[row.category] ?? row.category}
+                        {EXPENSE_CATEGORY_LABEL[row.category] ?? row.category}
                       </span>
                     </td>
                     <td className="py-3 text-dark dark:text-white">
@@ -264,6 +265,18 @@ export function ExpenseForm() {
                         maximumFractionDigits: 2,
                       })}{" "}
                       €
+                    </td>
+                    <td className="py-3 text-center">
+                      <button
+                        onClick={async () => {
+                          if (!confirm("Supprimer cette charge ?")) return;
+                          await fetch(`/api/expenses?id=${row.id}`, { method: "DELETE" });
+                          setHistory((prev) => prev.filter((e) => e.id !== row.id));
+                        }}
+                        className="text-xs text-red-500 hover:text-red-700"
+                      >
+                        Supprimer
+                      </button>
                     </td>
                   </tr>
                 ))}

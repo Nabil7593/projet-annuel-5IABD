@@ -43,6 +43,7 @@ model InvoiceItem {
   invoiceId   String  @map("invoice_id")
   description String
   quantity    Float?
+  tvaRate     Float?  @map("tva_rate")
   unitPrice   Float?  @map("unit_price")
   totalPrice  Float   @map("total_price")
   invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
