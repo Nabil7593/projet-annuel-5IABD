@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
 import type { Prediction } from "@/app/api/predictions/route";
 import { PredictionsChart, type ChartPoint } from "./chart";
+import { RetrainButton } from "./retrain-button";
 import path from "path";
 import fs from "fs";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
@@ -74,13 +75,14 @@ export async function PredictionsOverview({ className }: { className?: string })
           </p>
         </div>
 
-        <div className="flex gap-6 text-right">
-          <div>
+        <div className="flex items-start gap-6">
+          <div className="text-right">
             <p className="text-xs font-medium text-dark-6 dark:text-dark-4">Moy. prédite (à venir)</p>
             <p className="text-xl font-bold text-primary">
               {avgFuture.toLocaleString("fr-FR", { maximumFractionDigits: 0 })} €
             </p>
           </div>
+          <RetrainButton />
         </div>
       </div>
 

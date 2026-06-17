@@ -32,6 +32,10 @@ export function PredictionsChart({ data }: { data: ChartPoint[] }) {
     y: d.actual != null ? Math.round(d.actual) : null,
   }));
 
+  const todayLabel = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+  const todayX = data.find((d) => d.date === todayLabel)?.date
+    ?? data.find((d) => d.isFuture)?.date;
+
   const options: ApexOptions = {
     chart: {
       type: "rangeArea",
@@ -40,9 +44,9 @@ export function PredictionsChart({ data }: { data: ChartPoint[] }) {
       fontFamily: "inherit",
       animations: { enabled: false },
     },
-    colors: ["#5750F1", "#5750F1", "#22c55e"],
+    colors: ["#eab308", "#5750F1", "#22c55e"],
     fill: {
-      opacity: [0.15, 1, 1],
+      opacity: [0.2, 1, 1],
     },
     stroke: {
       curve: "smooth",
@@ -89,7 +93,7 @@ export function PredictionsChart({ data }: { data: ChartPoint[] }) {
     annotations: {
       xaxis: [
         {
-          x: data.find((d) => d.isFuture)?.date,
+          x: todayX,
           borderColor: "#f97316",
           strokeDashArray: 4,
           label: {

@@ -36,6 +36,12 @@ async function buildContext(): Promise<string> {
     caByMonth[key] = (caByMonth[key] ?? 0) + r.total;
   }
 
+  // CA journalier détaillé
+  const caDailyLines = revenues.map((r) => {
+    const d = new Date(r.date).toLocaleDateString("fr-FR");
+    return `  ${d} : Cash ${r.cash}€ | CB ${r.card}€ | T.Resto ${r.ticketResto}€ | Uber ${r.uber}€ | Total ${r.total}€`;
+  });
+
   // Charges par catégorie ce mois
   const expensesThisMonth = expenses.filter(
     (e) => new Date(e.date) >= firstDayOfMonth
@@ -53,7 +59,10 @@ async function buildContext(): Promise<string> {
   const lines: string[] = [
     `Date du jour : ${now.toLocaleDateString("fr-FR")}`,
     "",
-    "=== CHIFFRE D'AFFAIRES ===",
+    "=== CHIFFRE D'AFFAIRES (60 derniers jours) ===",
+    "-- Par jour --",
+    ...caDailyLines,
+    "-- Totaux mensuels --",
     ...Object.entries(caByMonth).map(
       ([month, total]) => `${month} : ${total.toFixed(2)} €`
     ),

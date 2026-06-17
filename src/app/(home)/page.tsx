@@ -14,17 +14,25 @@ import { RegionLabels } from "./_components/region-labels";
 type PropsType = {
   searchParams: Promise<{
     selected_time_frame?: string;
+    date_from?: string;
+    date_to?: string;
+    kpi_from?: string;
+    kpi_to?: string;
   }>;
 };
 
 export default async function Home({ searchParams }: PropsType) {
-  const { selected_time_frame } = await searchParams;
+  const { selected_time_frame, date_from, date_to, kpi_from, kpi_to } = await searchParams;
   const extractTimeFrame = createTimeFrameExtractor(selected_time_frame);
 
   return (
     <>
       <Suspense fallback={<OverviewCardsSkeleton />}>
-        <OverviewCardsGroup />
+        <OverviewCardsGroup
+          period={extractTimeFrame("kpi_cards")?.split(":")[1]}
+          kpiFrom={kpi_from}
+          kpiTo={kpi_to}
+        />
       </Suspense>
 
       <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-9 2xl:gap-7.5">
@@ -35,8 +43,10 @@ export default async function Home({ searchParams }: PropsType) {
         >
           <RevenueOverview
             className="col-span-12 xl:col-span-7"
-            key={extractTimeFrame("revenue_overview")}
+            key={`${extractTimeFrame("revenue_overview")}-${date_from}-${date_to}`}
             timeFrame={extractTimeFrame("revenue_overview")?.split(":")[1]}
+            dateFrom={date_from}
+            dateTo={date_to}
           />
         </Suspense>
 

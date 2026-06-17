@@ -21,54 +21,39 @@ type PropsType = {
 
 const HIDDEN_BY_DEFAULT = ["Cash", "Carte Bancaire", "Ticket Resto", "Uber Eats"];
 
-// Config xaxis selon la période
 function getXAxisConfig(timeFrame: string): ApexOptions["xaxis"] {
-  if (timeFrame === "semaine") {
+  if (timeFrame === "annuel") {
     return {
       axisBorder: { show: false },
       axisTicks: { show: false },
-      labels: {
-        rotate: 0,
-        style: { fontSize: "12px" },
-      },
+      labels: { rotate: 0, style: { fontSize: "13px" } },
     };
   }
-
-  if (timeFrame === "annee") {
+  if (timeFrame === "mensuel") {
     return {
       axisBorder: { show: false },
       axisTicks: { show: false },
-      labels: {
-        rotate: 0,
-        style: { fontSize: "11px" },
-      },
+      labels: { rotate: -35, rotateAlways: true, style: { fontSize: "11px" }, offsetY: 4 },
     };
   }
-
-  // mensuel : 30 points → on affiche ~8 labels, légèrement inclinés
+  // journalier
   return {
     axisBorder: { show: false },
     axisTicks: { show: false },
     tickAmount: 8,
-    labels: {
-      rotate: -35,
-      rotateAlways: true,
-      style: { fontSize: "11px" },
-      offsetY: 4,
-    },
+    labels: { rotate: -35, rotateAlways: true, style: { fontSize: "11px" }, offsetY: 4 },
   };
 }
 
-export function RevenueOverviewChart({ data, timeFrame = "mensuel" }: PropsType) {
+export function RevenueOverviewChart({ data, timeFrame = "journalier" }: PropsType) {
   const categories = data.map((d) => d.date);
-
-  // Hauteur du graphique un peu plus grande en mensuel pour laisser de la place aux labels inclinés
-  const chartHeight = timeFrame === "mensuel" ? 340 : 320;
+  const isBar = timeFrame === "mensuel" || timeFrame === "annuel";
+  const chartHeight = timeFrame === "journalier" ? 340 : 320;
 
   const options: ApexOptions = {
     chart: {
       height: chartHeight,
-      type: "area",
+      type: isBar ? "bar" : "area",
       toolbar: { show: false },
       fontFamily: "inherit",
       events: {
@@ -80,6 +65,17 @@ export function RevenueOverviewChart({ data, timeFrame = "mensuel" }: PropsType)
         },
       },
     },
+    ...(isBar
+      ? {
+          plotOptions: {
+            bar: {
+              horizontal: false,
+              columnWidth: "55%",
+              borderRadius: 4,
+            },
+          },
+        }
+      : {}),
     colors: ["#5750F1", "#22c55e", "#0ABEF9", "#f97316", "#ec4899"],
     legend: {
       show: true,
@@ -92,11 +88,12 @@ export function RevenueOverviewChart({ data, timeFrame = "mensuel" }: PropsType)
       onItemClick: { toggleDataSeries: true },
       onItemHover: { highlightDataSeries: true },
     },
-    fill: {
-      type: "gradient",
-      gradient: { opacityFrom: 0.45, opacityTo: 0.03 },
-    },
-    stroke: { curve: "smooth", width: 2.5 },
+    fill: isBar
+      ? { opacity: 1 }
+      : { type: "gradient", gradient: { opacityFrom: 0.45, opacityTo: 0.03 } },
+    stroke: isBar
+      ? { show: false }
+      : { curve: "smooth", width: 2.5 },
     dataLabels: { enabled: false },
     grid: {
       strokeDashArray: 5,
@@ -134,7 +131,7 @@ export function RevenueOverviewChart({ data, timeFrame = "mensuel" }: PropsType)
           { name: "Ticket Resto", data: data.map((d) => d.ticketResto) },
           { name: "Uber Eats", data: data.map((d) => d.uber) },
         ]}
-        type="area"
+        type={isBar ? "bar" : "area"}
         height={chartHeight}
       />
     </div>
