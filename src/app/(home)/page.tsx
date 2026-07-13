@@ -1,15 +1,12 @@
 import { RevenueOverview } from "@/components/Charts/revenue-overview";
 import { PredictionsOverview } from "@/components/Charts/predictions";
-import { UsedDevices } from "@/components/Charts/used-devices";
+import { ActivityHeatmap } from "@/components/Charts/activity-heatmap";
+import { FinanceDonuts } from "@/components/Charts/finance-donuts";
 import { WeeksProfit } from "@/components/Charts/weeks-profit";
-import { TopChannels } from "@/components/Tables/top-channels";
-import { TopChannelsSkeleton } from "@/components/Tables/top-channels/skeleton";
 import { createTimeFrameExtractor } from "@/utils/timeframe-extractor";
 import { Suspense } from "react";
-import { ChatsCard } from "./_components/chats-card";
 import { OverviewCardsGroup } from "./_components/overview-cards";
 import { OverviewCardsSkeleton } from "./_components/overview-cards/skeleton";
-import { RegionLabels } from "./_components/region-labels";
 
 type PropsType = {
   searchParams: Promise<{
@@ -18,11 +15,14 @@ type PropsType = {
     date_to?: string;
     kpi_from?: string;
     kpi_to?: string;
+    heatmap_month?: string;
+    finance_month?: string;
   }>;
 };
 
 export default async function Home({ searchParams }: PropsType) {
-  const { selected_time_frame, date_from, date_to, kpi_from, kpi_to } = await searchParams;
+  const { selected_time_frame, date_from, date_to, kpi_from, kpi_to, heatmap_month, finance_month } =
+    await searchParams;
   const extractTimeFrame = createTimeFrameExtractor(selected_time_frame);
 
   return (
@@ -56,22 +56,23 @@ export default async function Home({ searchParams }: PropsType) {
           className="col-span-12 xl:col-span-5"
         />
 
-        <UsedDevices
-          className="col-span-12 xl:col-span-5"
-          key={extractTimeFrame("used_devices")}
-          timeFrame={extractTimeFrame("used_devices")?.split(":")[1]}
-        />
+        <Suspense
+          fallback={
+            <div className="col-span-12 h-[380px] animate-pulse rounded-[10px] bg-gray-2 dark:bg-dark-2" />
+          }
+        >
+          <ActivityHeatmap selectedMonth={heatmap_month} />
+        </Suspense>
 
-        <RegionLabels />
-
-        <div className="col-span-12 grid xl:col-span-8">
-          <Suspense fallback={<TopChannelsSkeleton />}>
-            <TopChannels />
-          </Suspense>
-        </div>
-
-        <Suspense fallback={null}>
-          <ChatsCard />
+        <Suspense
+          fallback={
+            <div className="col-span-12 grid grid-cols-2 gap-4">
+              <div className="h-[420px] animate-pulse rounded-[10px] bg-gray-2 dark:bg-dark-2" />
+              <div className="h-[420px] animate-pulse rounded-[10px] bg-gray-2 dark:bg-dark-2" />
+            </div>
+          }
+        >
+          <FinanceDonuts selectedMonth={finance_month} />
         </Suspense>
 
         <Suspense

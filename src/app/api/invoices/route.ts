@@ -2,11 +2,15 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
-  const invoices = await prisma.invoice.findMany({
-    orderBy: { date: "desc" },
-    include: { items: true },
-  });
-  return NextResponse.json(invoices);
+  try {
+    const invoices = await prisma.invoice.findMany({
+      orderBy: { date: "desc" },
+      include: { items: true },
+    });
+    return NextResponse.json(invoices);
+  } catch (err) {
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {

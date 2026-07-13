@@ -22,7 +22,8 @@ export function InvoiceList({ refresh }: { refresh: number }) {
   useEffect(() => {
     fetch("/api/invoices")
       .then((r) => r.json())
-      .then((data) => setInvoices(data))
+      .then((data) => setInvoices(Array.isArray(data) ? data : []))
+      .catch(() => setInvoices([]))
       .finally(() => setLoading(false));
   }, [refresh]);
 

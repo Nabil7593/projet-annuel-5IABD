@@ -1,15 +1,50 @@
-import { PeriodPicker } from "@/components/period-picker";
 import { cn } from "@/lib/utils";
-import { getWeeksProfitData } from "@/services/charts.services";
-import { WeeksProfitChart } from "./chart";
+import { prisma } from "@/lib/prisma";
+import { MonthlyResultChart } from "./chart";
 
 type PropsType = {
   timeFrame?: string;
   className?: string;
 };
 
-export async function WeeksProfit({ className, timeFrame }: PropsType) {
-  const data = await getWeeksProfitData(timeFrame);
+type MonthPoint = { x: string; ca: number; resultat: number; costs: number };
+
+async function fetchMonthlyData(): Promise<MonthPoint[]> {
+  type Row = { month: Date; ca: number; inv_cost: number; charges: number };
+
+  const rows = await prisma.$queryRaw<Row[]>`
+    SELECT
+      DATE_TRUNC('month', d.date)::date AS month,
+      COALESCE(SUM(d.total), 0)::float  AS ca,
+      COALESCE((
+        SELECT SUM(COALESCE(amount_ttc, total_amount))
+        FROM invoices i
+        WHERE DATE_TRUNC('month', i.date) = DATE_TRUNC('month', d.date)
+      ), 0)::float AS inv_cost,
+      COALESCE((
+        SELECT SUM(amount)
+        FROM expenses e
+        WHERE DATE_TRUNC('month', e.date) = DATE_TRUNC('month', d.date)
+      ), 0)::float AS charges
+    FROM daily_revenues d
+    GROUP BY DATE_TRUNC('month', d.date)
+    ORDER BY month ASC
+  `.catch(() => [] as Row[]);
+
+  return rows.map((r) => {
+    const ca       = Math.round(r.ca);
+    const resultat = Math.round(r.ca - r.inv_cost - r.charges);
+    return {
+      x:        new Date(r.month).toLocaleDateString("fr-FR", { month: "short", year: "2-digit" }),
+      ca,
+      resultat,
+      costs:    Math.max(ca - resultat, 0),
+    };
+  });
+}
+
+export async function WeeksProfit({ className }: PropsType) {
+  const data = await fetchMonthlyData();
 
   return (
     <div
@@ -18,19 +53,16 @@ export async function WeeksProfit({ className, timeFrame }: PropsType) {
         className,
       )}
     >
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="mb-1">
         <h2 className="text-body-2xlg font-bold text-dark dark:text-white">
-          Profit {timeFrame || "this week"}
+          CA vs Résultat net
         </h2>
-
-        <PeriodPicker
-          items={["this week", "last week"]}
-          defaultValue={timeFrame || "this week"}
-          sectionKey="weeks_profit"
-        />
+        <p className="mt-0.5 text-sm font-medium text-dark-6 dark:text-dark-4">
+          Mensuel — tous les mois saisis
+        </p>
       </div>
 
-      <WeeksProfitChart data={data} />
+      <MonthlyResultChart data={data} />
     </div>
   );
 }

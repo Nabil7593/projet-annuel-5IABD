@@ -1,5 +1,6 @@
 import { PeriodPicker } from "@/components/period-picker";
 import { prisma } from "@/lib/prisma";
+import { getAllDailyRevenues, getCurrentMonthTotal } from "@/lib/db-cache";
 import { cn } from "@/lib/utils";
 import { RevenueOverviewChart } from "./chart";
 import { CustomRangePicker } from "./custom-range-picker";
@@ -26,16 +27,20 @@ async function fetchData(
   dateTo?: string
 ): Promise<DataPoint[]> {
   if (timeFrame === "personnalise" && dateFrom && dateTo) {
-    const revenues = await prisma.dailyRevenue.findMany({
-      where: { date: { gte: new Date(dateFrom), lte: new Date(dateTo) } },
-      orderBy: { date: "asc" },
-    });
-    return revenues.map((r) => ({
+    const rows = await prisma.$queryRaw<
+      { date: Date; total: number; cash: number; card: number; ticket_resto: number; uber: number }[]
+    >`
+      SELECT date, total::float, cash::float, card::float, ticket_resto::float, uber::float
+      FROM daily_revenues
+      WHERE date >= ${dateFrom}::date AND date <= ${dateTo}::date
+      ORDER BY date ASC
+    `.catch(() => []);
+    return rows.map((r) => ({
       date: new Date(r.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
       total: r.total,
       cash: r.cash,
       card: r.card,
-      ticketResto: r.ticketResto,
+      ticketResto: r.ticket_resto,
       uber: r.uber,
     }));
   }
@@ -54,7 +59,7 @@ async function fetchData(
       FROM daily_revenues
       GROUP BY DATE_TRUNC('year', date)
       ORDER BY year ASC
-    `;
+    `.catch(() => []);
     return rows.map((r) => ({
       date: new Date(r.year).getFullYear().toString(),
       total: r.total,
@@ -79,7 +84,7 @@ async function fetchData(
       FROM daily_revenues
       GROUP BY DATE_TRUNC('month', date)
       ORDER BY month ASC
-    `;
+    `.catch(() => []);
     return rows.map((r) => ({
       date: new Date(r.month).toLocaleDateString("fr-FR", { month: "short", year: "2-digit" }),
       total: r.total,
@@ -90,37 +95,17 @@ async function fetchData(
     }));
   }
 
-  // journalier : 30 dernières saisies
-  const revenues = await prisma.dailyRevenue.findMany({
-    orderBy: { date: "desc" },
-    take: 30,
-  });
-  revenues.reverse();
-  return revenues.map((r) => ({
+  // journalier: utilise le cache partagé, prend les 30 derniers en mémoire
+  const all = await getAllDailyRevenues();
+  const last30 = all.slice(-30);
+  return last30.map((r) => ({
     date: new Date(r.date).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
     total: r.total,
     cash: r.cash,
     card: r.card,
-    ticketResto: r.ticketResto,
+    ticketResto: r.ticket_resto,
     uber: r.uber,
   }));
-}
-
-async function fetchCurrentMonthTotal(): Promise<{ total: number; label: string }> {
-  const last = await prisma.dailyRevenue.findFirst({ orderBy: { date: "desc" } });
-  if (!last) return { total: 0, label: "CA total" };
-
-  const ref = new Date(last.date);
-  const firstDay = new Date(ref.getFullYear(), ref.getMonth(), 1);
-  const lastDay = new Date(ref.getFullYear(), ref.getMonth() + 1, 0);
-
-  const result = await prisma.dailyRevenue.aggregate({
-    _sum: { total: true },
-    where: { date: { gte: firstDay, lte: lastDay } },
-  });
-
-  const monthLabel = ref.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
-  return { total: result._sum.total ?? 0, label: `CA total ${monthLabel}` };
 }
 
 const PERIOD_LABELS: Record<string, string> = {
@@ -151,14 +136,13 @@ export async function RevenueOverview({
   const hasRange = isCustom && dateFrom && dateTo;
 
   const [data, monthStat] = await Promise.all([
-    hasRange ? fetchData(timeFrame, dateFrom, dateTo) : fetchData(timeFrame),
-    fetchCurrentMonthTotal(),
+    fetchData(timeFrame, dateFrom, dateTo),
+    getCurrentMonthTotal(),
   ]);
 
   const totalCA = data.reduce((s, r) => s + r.total, 0);
   const avgCA = data.length > 0 ? totalCA / data.length : 0;
 
-  // Pour la période personnalisée, les stats reflètent la plage sélectionnée
   const col1Label = isCustom && hasRange
     ? `CA total : ${formatDate(dateFrom!)} → ${formatDate(dateTo!)}`
     : monthStat.label;

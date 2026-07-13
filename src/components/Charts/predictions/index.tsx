@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { getAllDailyRevenues } from "@/lib/db-cache";
 import { cn } from "@/lib/utils";
 import type { Prediction } from "@/app/api/predictions/route";
 import { PredictionsChart, type ChartPoint } from "./chart";
@@ -26,17 +26,12 @@ async function fetchPredictions(): Promise<Prediction[]> {
 export async function PredictionsOverview({ className }: { className?: string }) {
   const [predictions, revenues] = await Promise.all([
     fetchPredictions(),
-    prisma.dailyRevenue.findMany({
-      orderBy: { date: "asc" },
-      select: { date: true, total: true },
-    }),
+    getAllDailyRevenues(),
   ]);
 
   const revenueMap = new Map(
     revenues.map((r) => {
-      // DB stores dates at midnight Paris time → UTC is 22h or 23h previous day.
-      // Adding 12h normalizes to the correct calendar day regardless of DST.
-      const key = new Date(r.date.getTime() + 12 * 60 * 60 * 1000)
+      const key = new Date(new Date(r.date).getTime() + 12 * 60 * 60 * 1000)
         .toISOString()
         .split("T")[0];
       return [key, r.total];

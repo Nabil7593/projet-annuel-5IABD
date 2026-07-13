@@ -69,23 +69,38 @@ async function fetchKpiData(period: string, kpiFrom?: string, kpiTo?: string) {
   const { from, to, label } = getPeriodDates(period, kpiFrom, kpiTo);
   const { from: pFrom, to: pTo } = getPrevPeriodDates(period, kpiFrom, kpiTo);
 
-  const [caRows, caPrevRows, invoices, invoicesPrev, expensesAgg, expensesPrevAgg, dailyRows] =
-    await Promise.all([
-      prisma.dailyRevenue.aggregate({ _sum: { total: true }, where: { date: { gte: from, lte: to } } }),
-      prisma.dailyRevenue.aggregate({ _sum: { total: true }, where: { date: { gte: pFrom, lte: pTo } } }),
-      prisma.invoice.findMany({ where: { date: { gte: from, lte: to } }, select: { amountTTC: true, totalAmount: true } }),
-      prisma.invoice.findMany({ where: { date: { gte: pFrom, lte: pTo } }, select: { amountTTC: true, totalAmount: true } }),
-      prisma.expense.aggregate({ _sum: { amount: true }, where: { date: { gte: from, lte: to } } }),
-      prisma.expense.aggregate({ _sum: { amount: true }, where: { date: { gte: pFrom, lte: pTo } } }),
-      prisma.dailyRevenue.findMany({ where: { date: { gte: from, lte: to } }, orderBy: { date: "asc" }, select: { total: true } }),
-    ]);
+  const fromStr  = from.toISOString().slice(0, 10);
+  const toStr    = to.toISOString().slice(0, 10);
+  const pFromStr = pFrom.toISOString().slice(0, 10);
+  const pToStr   = pTo.toISOString().slice(0, 10);
 
-  const ca          = caRows._sum.total ?? 0;
-  const caPrev      = caPrevRows._sum.total ?? 0;
-  const invCost     = invoices.reduce((s, i) => s + (i.amountTTC ?? i.totalAmount ?? 0), 0);
-  const invCostPrev = invoicesPrev.reduce((s, i) => s + (i.amountTTC ?? i.totalAmount ?? 0), 0);
-  const charges     = expensesAgg._sum.amount ?? 0;
-  const chargesPrev = expensesPrevAgg._sum.amount ?? 0;
+  // 2 requêtes au lieu de 7 — une par période
+  type KpiRow = { ca: number; inv_cost: number; charges: number };
+  type DailyRow = { total: number };
+
+  const [curr, prev, dailyRows] = await Promise.all([
+    prisma.$queryRaw<[KpiRow]>`
+      SELECT
+        COALESCE((SELECT SUM(total)  FROM daily_revenues WHERE date >= ${fromStr}::date AND date <= ${toStr}::date), 0)::float AS ca,
+        COALESCE((SELECT SUM(COALESCE(amount_ttc, total_amount)) FROM invoices WHERE date >= ${fromStr}::date AND date <= ${toStr}::date), 0)::float AS inv_cost,
+        COALESCE((SELECT SUM(amount) FROM expenses WHERE date >= ${fromStr}::date AND date <= ${toStr}::date), 0)::float AS charges`,
+    prisma.$queryRaw<[KpiRow]>`
+      SELECT
+        COALESCE((SELECT SUM(total)  FROM daily_revenues WHERE date >= ${pFromStr}::date AND date <= ${pToStr}::date), 0)::float AS ca,
+        COALESCE((SELECT SUM(COALESCE(amount_ttc, total_amount)) FROM invoices WHERE date >= ${pFromStr}::date AND date <= ${pToStr}::date), 0)::float AS inv_cost,
+        COALESCE((SELECT SUM(amount) FROM expenses WHERE date >= ${pFromStr}::date AND date <= ${pToStr}::date), 0)::float AS charges`,
+    prisma.$queryRaw<DailyRow[]>`
+      SELECT total::float FROM daily_revenues
+      WHERE date >= ${fromStr}::date AND date <= ${toStr}::date
+      ORDER BY date ASC`,
+  ]);
+
+  const ca          = curr[0]?.ca ?? 0;
+  const caPrev      = prev[0]?.ca ?? 0;
+  const invCost     = curr[0]?.inv_cost ?? 0;
+  const invCostPrev = prev[0]?.inv_cost ?? 0;
+  const charges     = curr[0]?.charges ?? 0;
+  const chargesPrev = prev[0]?.charges ?? 0;
 
   const resultat     = ca - invCost - charges;
   const resultatPrev = caPrev - invCostPrev - chargesPrev;
@@ -107,8 +122,10 @@ async function fetchKpiData(period: string, kpiFrom?: string, kpiTo?: string) {
 }
 
 // ── component ───────────────────────────────────────────────────
+const EMPTY = { label: "—", ca: 0, resultat: 0, resultatTrend: null, foodCostPct: 0, chargesPct: 0, sparkData: [], invCost: 0, charges: 0 };
+
 export async function OverviewCardsGroup({ period = "prev-month", kpiFrom, kpiTo }: Props) {
-  const data = await fetchKpiData(period, kpiFrom, kpiTo);
+  const data = await fetchKpiData(period, kpiFrom, kpiTo).catch(() => EMPTY);
 
   const isPos = (data.resultatTrend ?? 0) >= 0;
 
