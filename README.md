@@ -1,98 +1,148 @@
-# Pour mettrer les vraie données :
-Tu mets ton nouveau CSV dans scripts/
+# RestoLens — Gestion & Analytique Restaurant
 
-Tu changes juste cette ligne dans seed.js :
+Application web de gestion et d'analyse pour restaurant. Dashboard temps réel, saisie du CA journalier, gestion des fournisseurs, charges, prévisions par IA et assistant conversationnel.
 
-// Change juste le nom du fichier ici
-const file = fs.readFileSync('scripts/TON_NOUVEAU_FICHIER.csv', 'utf-8')
+---
 
-code pour relancer : node scripts/seed.js
+## Fonctionnalités
 
+- **Dashboard** : KPI clés (résultat net, food cost, taux de charges), graphiques CA, heatmap d'activité, donuts charges/fournisseurs, prévisions Prophet
+- **Saisie CA journalier** : enregistrement du CA par canal (espèces, carte, ticket resto, Uber Eats)
+- **Fournisseurs** : import de factures PDF avec extraction automatique via AWS Textract (OCR)
+- **Charges & Analytique** : suivi des charges fixes et variables par catégorie
+- **Assistant IA** : chatbot connecté aux données du restaurant (Groq / LLaMA 3)
+- **Prévisions** : modèle Prophet entraîné sur AWS, prédictions à 30 jours
 
-**NextAdmin** is a Free, open-source Next.js admin dashboard toolkit featuring 200+ UI components and templates that come with pre-built elements, components, pages, high-quality design, integrations, and much more to help you create powerful admin dashboards with ease.
+---
 
+## Stack technique
 
-[![nextjs admin template](https://cdn.pimjo.com/nextadmin-2.png)](https://nextadmin.co/)
+| Couche | Technologie |
+|--------|------------|
+| Frontend & Backend | Next.js 16 (App Router, React Server Components) |
+| Base de données | PostgreSQL (AWS RDS) via Prisma 7 |
+| IA / LLM | Groq API (LLaMA 3) |
+| ML | Prophet (AWS Lambda + S3) |
+| OCR | AWS Textract |
+| Stockage fichiers | AWS S3 |
+| UI | Tailwind CSS + ApexCharts |
 
+---
 
-**NextAdmin** provides you with a diverse set of dashboard UI components, elements, examples and pages necessary for creating top-notch admin panels or dashboards with **powerful** features and integrations. Whether you are working on a complex web application or a basic website, **NextAdmin** has got you covered.
+## Prérequis
 
-### [✨ Visit Website](https://nextadmin.co/)
-### [🚀 Live Demo](https://demo.nextadmin.co/)
-### [📖 Docs](https://docs.nextadmin.co/)
+- Node.js 18+
+- npm
+- PostgreSQL (local ou AWS RDS)
+- Compte AWS (optionnel — pour l'OCR et les prévisions)
+- Clé API Groq (optionnel — pour l'assistant IA)
 
-By leveraging the latest features of **Next.js 14** and key functionalities like **server-side rendering (SSR)**, **static site generation (SSG)**, and seamless **API route integration**, **NextAdmin** ensures optimal performance. With the added benefits of **React 18 advancements** and **TypeScript** reliability, **NextAdmin** is the ultimate choice to kickstart your **Next.js** project efficiently.
+---
 
 ## Installation
 
-1. Download/fork/clone the repo and Once you're in the correct directory, it's time to install all the necessary dependencies. You can do this by typing the following command:
+### 1. Cloner le dépôt
 
+```bash
+git clone https://github.com/Nabil7593/projet-annuel-5IABD.git
+cd projet-annuel-5IABD
 ```
+
+### 2. Installer les dépendances
+
+```bash
 npm install
 ```
-If you're using **Yarn** as your package manager, the command will be:
 
-```
-yarn install
+### 3. Configurer les variables d'environnement
+
+Créer un fichier `.env.local` à la racine :
+
+```env
+# Base de données PostgreSQL (obligatoire)
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require"
+
+# AWS (optionnel — OCR factures + prévisions)
+AWS_REGION="eu-west-3"
+AWS_ACCESS_KEY_ID="votre_access_key"
+AWS_SECRET_ACCESS_KEY="votre_secret_key"
+AWS_S3_BUCKET="nom-bucket-modeles"
+AWS_S3_INVOICES_BUCKET="nom-bucket-factures"
+LAMBDA_RETRAIN_FUNCTION="nom-fonction-lambda"
+
+# Assistant IA (optionnel)
+GROQ_API_KEY="votre_cle_groq"
 ```
 
-2. Okay, you're almost there. Now all you need to do is start the development server. If you're using **npm**, the command is:
+> Sans AWS ni Groq, le dashboard, la saisie CA, les charges et les fournisseurs fonctionnent normalement.
 
+### 4. Initialiser la base de données
+
+```bash
+npx prisma generate
+npx prisma migrate deploy
 ```
+
+### 5. (Optionnel) Importer des données de démonstration
+
+```bash
+# Placer votre fichier CSV dans scripts/ puis :
+node scripts/seed.js
+```
+
+### 6. Lancer l'application
+
+```bash
 npm run dev
 ```
-And if you're using **Yarn**, it's:
+
+Ouvrir [http://localhost:3000](http://localhost:3000)
+
+---
+
+## Structure du projet
 
 ```
-yarn dev
+src/
+├── app/
+│   ├── (home)/          # Dashboard principal
+│   ├── saisie-ca/       # Saisie du CA journalier
+│   ├── fournisseurs/    # Gestion des factures fournisseurs
+│   ├── charges/         # Suivi des charges
+│   ├── agent/           # Assistant IA
+│   └── api/             # Routes API
+├── components/
+│   └── Charts/          # Graphiques (heatmap, donuts, prévisions, CA…)
+└── lib/
+    ├── prisma.ts         # Client Prisma (pool PostgreSQL)
+    └── db-cache.ts       # Cache React partagé entre composants
+prisma/
+└── schema.prisma         # Schéma de la base de données
 ```
 
-And voila! You're now ready to start developing. **Happy coding**!
+---
 
-## Highlighted Features
-**200+ Next.js Dashboard Ul Components and Templates** - includes a variety of prebuilt **Ul elements, components, pages, and examples** crafted with a high-quality design.
-Additionally, features seamless **essential integrations and extensive functionalities**.
+## Base de données — tables principales
 
-- A library of over **200** professional dashboard UI components and elements.
-- Five distinctive dashboard variations, catering to diverse use-cases.
-- A comprehensive set of essential dashboard and admin pages.
-- More than **45** **Next.js** files, ready for use.
-- Styling facilitated by **Tailwind CSS** files.
-- A design that resonates premium quality and high aesthetics.
-- A handy UI kit with assets.
-- Over ten web apps complete with examples.
-- Support for both **dark mode** and **light mode**.
-- Essential integrations including - Authentication (**NextAuth**), Database (**Postgres** with **Prisma**), and Search (**Algolia**).
-- Detailed and user-friendly documentation.
-- Customizable plugins and add-ons.
-- **TypeScript** compatibility.
-- Plus, much more!
+| Table | Description |
+|-------|-------------|
+| `daily_revenues` | CA journalier par canal (cash, carte, ticket resto, Uber) |
+| `invoices` | Factures fournisseurs avec lignes de détail |
+| `expenses` | Charges par catégorie (loyer, salaires, électricité…) |
 
-All these features and more make **NextAdmin** a robust, well-rounded solution for all your dashboard development needs.
+---
 
-## Update Logs
+## Build production
 
-### Version 1.2.2 - [December 01, 2025]
-- Updated to Next.js 16
-- Updated dependencies.
+```bash
+npm run build
+npm run start
+```
 
-### Version 1.2.1 - [Mar 20, 2025]
-- Fix Peer dependency issues and NextConfig warning.
-- Updated apexcharts and react-apexhcarts to the latest version.
+---
 
-### Version 1.2.0 - Major Upgrade and UI Improvements - [Jan 27, 2025]
+## Notes
 
-- Upgraded to Next.js v15 and updated dependencies
-- API integration with loading skeleton for tables and charts.
-- Improved code structure for better readability.
-- Rebuilt components like dropdown, sidebar, and all ui-elements using accessibility practices.
-- Using search-params to store dropdown selection and refetch data.
-- Semantic markups, better separation of concerns and more.
-
-### Version 1.1.0
-- Updated Dependencies
-- Removed Unused Integrations
-- Optimized App
-
-### Version 1.0
-- Initial Release - [May 13, 2024]
+- Si vous utilisez une RDS AWS, votre IP doit être autorisée dans le Security Group (port 5432)
+- Le modèle de prévision est stocké sur S3 et peut être réentraîné depuis le dashboard via "Relancer la prédiction"
+- L'authentification est gérée par NextAuth — configurer les providers dans `src/app/api/auth/`
